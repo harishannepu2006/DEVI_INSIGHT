@@ -41,7 +41,7 @@ export const repoAPI = {
   submit: (url, branch) => api.post('/repositories/submit', { url, branch }),
   submitSnippet: (code, language, filename) =>
     api.post('/repositories/snippet', { code, language, filename }),
-  list: () => api.get('/repositories/'),
+  list: () => api.get('/repositories'),
   get: (id) => api.get(`/repositories/${id}`),
   delete: (id) => api.delete(`/repositories/${id}`),
   getInsights: (id) => api.get(`/repositories/${id}/insights`),
@@ -49,7 +49,7 @@ export const repoAPI = {
 
 // Analysis
 export const analysisAPI = {
-  list: () => api.get('/analysis/'),
+  list: () => api.get('/analysis'),
   get: (id) => api.get(`/analysis/${id}`),
   dashboard: () => api.get('/analysis/dashboard'),
   history: (id) => api.get(`/analysis/${id}/history`),

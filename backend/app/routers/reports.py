@@ -108,7 +108,7 @@ async def download_report(report_id: str, filename: str = None, current_user: di
     )
 
 
-@router.get("/")
+@router.get("")
 async def list_reports(current_user: dict = Depends(get_current_user)):
     """List all reports for the current user."""
     db = get_db()

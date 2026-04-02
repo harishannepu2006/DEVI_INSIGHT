@@ -6,7 +6,7 @@ from app.utils.supabase_client import get_db
 router = APIRouter(tags=["Analysis"])
 
 
-@router.get("/")
+@router.get("")
 async def list_analyses(current_user: dict = Depends(get_current_user)):
     """List all analyses for the current user."""
     db = get_db()
