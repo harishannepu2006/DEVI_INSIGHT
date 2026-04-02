@@ -64,14 +64,9 @@ async def submit_repository(data: RepoSubmitRequest, background_tasks: Backgroun
         error_detail = traceback.format_exc()
         print(f"Submission Error: {str(e)}")
         print(error_detail)
-        raise HTTPException(
-            status_code=500, 
-            detail={
-                "message": f"Failed to submit repository: {type(e).__name__} - {str(e)}",
-                "error_type": type(e).__name__,
-                "debug_info": "Check server logs for full traceback"
-            }
-        )
+        # Return string detail for frontend toast compatibility
+        error_msg = f"Failed to submit repository: {type(e).__name__} - {str(e)}"
+        raise HTTPException(status_code=500, detail=error_msg)
 
 
 @router.post("/snippet")

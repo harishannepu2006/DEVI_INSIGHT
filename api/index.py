@@ -25,19 +25,51 @@ except Exception as e:
 @app.get("/api/health-check")
 async def combined_health():
     """Emergency diagnostic and standard health endpoint."""
+    from app.config import settings
+    from app.utils.supabase_client import get_db
+    
+    env_checks = {
+        "SUPABASE_URL": bool(settings.SUPABASE_URL),
+        "SUPABASE_SERVICE_ROLE_KEY": bool(settings.SUPABASE_SERVICE_ROLE_KEY),
+        "GITHUB_TOKEN": bool(settings.GITHUB_TOKEN),
+        "FRONTEND_URL": settings.FRONTEND_URL,
+        "APP_ENV": settings.APP_ENV,
+    }
+    
+    db_status = "UNKNOWN"
+    db_error = None
+    try:
+        if env_checks["SUPABASE_URL"] and env_checks["SUPABASE_SERVICE_ROLE_KEY"]:
+            db = get_db()
+            # Simple query to check connectivity and schema
+            db.table("users").select("count", count="exact").limit(1).execute()
+            db_status = "CONNECTED"
+        else:
+            db_status = "MISSING_KEYS"
+    except Exception as e:
+        db_status = "ERROR"
+        db_error = str(e)
+
     if import_error:
         return {
             "status": "CRASHED",
             "detail": "The backend failed to load. Check traceback below.",
             "traceback": import_error,
             "sys_path": sys.path,
-            "project_root": project_root
+            "project_root": project_root,
+            "env_checks": env_checks,
+            "db_status": db_status,
+            "db_error": db_error
         }
+    
     return {
         "status": "READY",
         "message": "DevInsight API is active and reconnected",
         "project_root": project_root,
-        "backend_path": backend_path
+        "backend_path": backend_path,
+        "env_checks": env_checks,
+        "db_status": db_status,
+        "db_error": db_error
     }
 
 # Ensure Vercel finds the handler
