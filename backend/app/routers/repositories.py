@@ -5,7 +5,7 @@ from app.services.github_service import GitHubService
 from app.models.schemas import RepoSubmitRequest, CodeSnippetRequest, RepositoryResponse, InsightsResponse
 from app.tasks.analysis_tasks import run_analysis, run_snippet_analysis
 
-router = APIRouter(prefix="/api/repositories", tags=["Repositories"])
+router = APIRouter(prefix="/repositories", tags=["Repositories"])
 
 
 @router.post("/submit")

@@ -22,6 +22,7 @@ app = FastAPI(
     version="1.0.0",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
+    root_path="/api" if os.getenv("VERCEL") else ""
 )
 
 # CORS middleware

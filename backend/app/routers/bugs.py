@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query
 from app.middleware.auth_middleware import get_current_user
 from app.utils.supabase_client import get_db
 
-router = APIRouter(prefix="/api/bugs", tags=["Bugs"])
+router = APIRouter(prefix="/bugs", tags=["Bugs"])
 
 
 @router.get("/analysis/{analysis_id}")
