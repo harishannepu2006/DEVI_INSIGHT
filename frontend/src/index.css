@@ -172,6 +172,7 @@ a:hover {
   font-weight: 700;
   background: var(--gradient-primary);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -312,6 +313,7 @@ a:hover {
 .landing-logo span {
   background: var(--gradient-primary);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -363,6 +365,7 @@ a:hover {
 .hero-title .gradient-text {
   background: var(--gradient-accent);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -601,6 +604,7 @@ a:hover {
   font-weight: 800;
   background: var(--gradient-primary);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -677,7 +681,8 @@ a:hover {
 }
 
 .form-input:focus,
-.form-textarea:focus {
+.form-textarea:focus,
+.form-select:focus {
   border-color: var(--accent-blue);
   box-shadow: 0 0 0 3px var(--accent-blue-glow);
 }
@@ -685,6 +690,12 @@ a:hover {
 .form-textarea {
   min-height: 120px;
   resize: vertical;
+}
+
+/* Fix for invisible text in dark mode dropdowns */
+.form-select option {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 /* ==========================================

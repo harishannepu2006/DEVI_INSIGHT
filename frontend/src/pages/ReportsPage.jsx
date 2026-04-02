@@ -46,11 +46,24 @@ export default function ReportsPage() {
       const response = await reportsAPI.generate(selectedAnalysis, reportType, format)
       const reportId = response.data.report_id
       const filename = `devinsight_report_${reportType}.${format}`
-      
       const token = localStorage.getItem('access_token')
-      window.location.href = `${reportsAPI.downloadUrl(reportId, filename)}?token=${token}`
+      
+      // Professional Blob Download to ensure correct filename
+      const downloadResponse = await axios.get(`${api.defaults.baseURL}/reports/download/${reportId}`, {
+        params: { token },
+        responseType: 'blob'
+      })
+      
+      const url = window.URL.createObjectURL(new Blob([downloadResponse.data]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', filename)
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
 
-      toast.success('Report generation started!')
+      toast.success('Report downloaded successfully!')
       setTimeout(loadData, 2000) // Refresh list after delay
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Failed to generate report')
