@@ -128,6 +128,7 @@ export default function ReportsPage() {
             <table className="data-table">
               <thead>
                 <tr>
+                  <th>Repo</th>
                   <th>Type</th>
                   <th>Format</th>
                   <th>Generated</th>
@@ -137,6 +138,7 @@ export default function ReportsPage() {
               <tbody>
                 {reports.map(r => (
                   <tr key={r.id}>
+                    <td>{r.analysis_results?.repositories?.name || 'Unknown Repo'}</td>
                     <td><span className="badge badge-medium">{r.report_type?.replace('_', ' ')}</span></td>
                     <td>{r.format?.toUpperCase()}</td>
                     <td style={{color:'var(--text-muted)'}}>{new Date(r.generated_at || r.created_at).toLocaleString()}</td>

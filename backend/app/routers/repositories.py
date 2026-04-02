@@ -117,6 +117,7 @@ async def submit_snippet(data: CodeSnippetRequest, background_tasks: BackgroundT
 
 
 @router.get("")
+@router.get("/")
 async def list_repositories(current_user: dict = Depends(get_current_user)):
     """List all repositories for the current user."""
     db = get_db()

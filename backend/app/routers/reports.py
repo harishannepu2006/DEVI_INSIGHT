@@ -109,10 +109,12 @@ async def download_report(report_id: str, filename: str = None, current_user: di
 
 
 @router.get("")
+@router.get("/")
 async def list_reports(current_user: dict = Depends(get_current_user)):
     """List all reports for the current user."""
     db = get_db()
-    result = db.table("reports").select("*").eq(
+    # Join with analysis and repositories for context
+    result = db.table("reports").select("*, analysis_results(*, repositories(name))").eq(
         "user_id", current_user["id"]
     ).order("created_at", desc=True).execute()
 
