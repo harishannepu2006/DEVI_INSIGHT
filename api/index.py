@@ -13,9 +13,11 @@ if backend_dir not in sys.path:
 app = FastAPI()
 
 try:
-    # Try to override with the real app
-    from app.main import app as real_app
-    app = real_app
+    # Vercel needs this top-level assignment
+    # We use both 'app' and 'handler' to be safe across different builder versions
+    from app.main import app as _app
+    app = _app
+    handler = _app
 except Exception as e:
     # If the real app fails to load, this minimal app will catch it 
     # and we can visit /api/health-check to see the error
