@@ -13,31 +13,6 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 )
-logger = logging.getLogger(__name__)
-
-from starlette.middleware.base import BaseHTTPMiddleware
-
-class PrefixMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request, call_next):
-        path = request.scope.get("path", "")
-        original_path = path
-        
-        # Normalize paths by stripping leading /api if it exists
-        if path.startswith("/api"):
-            new_path = path[4:] 
-            if not new_path:
-                new_path = "/"
-            request.scope["path"] = new_path
-            path = new_path
-            
-        response = await call_next(request)
-        
-        # Add diagnostic headers to troubleshoot Vercel routing
-        response.headers["X-Debug-Original-Path"] = original_path
-        response.headers["X-Debug-Used-Path"] = path
-        
-        return response
-
 # Create FastAPI app
 app = FastAPI(
     title="DevInsight API",
@@ -45,10 +20,8 @@ app = FastAPI(
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
+    root_path="/api" if os.getenv("VERCEL") else ""
 )
-
-# Add the prefix middleware first
-app.add_middleware(PrefixMiddleware)
 
 # CORS middleware
 app.add_middleware(
