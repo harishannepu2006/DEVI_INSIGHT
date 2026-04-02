@@ -11,6 +11,7 @@ if backend_dir not in sys.path:
 
 # Initialize app as a minimal fallback first to prevent "Could not find app" errors
 app = FastAPI()
+import_error = None
 
 try:
     # Vercel needs this top-level assignment
@@ -19,18 +20,19 @@ try:
     app = _app
     handler = _app
 except Exception as e:
-    # If the real app fails to load, this minimal app will catch it 
-    # and we can visit /api/health-check to see the error
-    @app.get("/api/health-check")
-    async def health_check():
-        import traceback
+    import_error = traceback.format_exc()
+
+@app.get("/api/health-check")
+async def health_check():
+    if import_error:
         return {
             "status": "fatal_crash_during_import", 
-            "detail": str(e), 
-            "traceback": traceback.format_exc(),
+            "detail": "The backend failed to load during startup.",
+            "traceback": import_error,
             "path": sys.path,
             "cwd": os.getcwd()
         }
+    return {"status": "ok"}
 
 # Ensure Vercel finds the 'app' even if the import fails
 handler = app
