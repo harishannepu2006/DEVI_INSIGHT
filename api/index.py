@@ -10,19 +10,22 @@ backend_path = os.path.join(project_root, "backend")
 if backend_path not in sys.path:
     sys.path.insert(0, backend_path)
 
-# Initialize a fallback app in case the import fails
-app = FastAPI()
-import_error = None
+# Mount the main app under /api to match Vercel rewrites and frontend calls
+# This makes the routes like /api/analysis/ match the production app.
+api_app = FastAPI()
 
 try:
     # Try to load the real production app
     from app.main import app as _app
-    app = _app
+    api_app.mount("/api", _app)
+    # Also mount at root as fallback for some Vercel rewrite behaviors
+    api_app.mount("/", _app)
 except Exception as e:
     import_error = traceback.format_exc()
     print(f"CRITICAL: Backend import failed: {e}")
 
-@app.get("/api/health-check")
+@api_app.get("/api/health-check")
+@api_app.get("/health-check")
 async def combined_health():
     """Emergency diagnostic and standard health endpoint."""
     from app.config import settings
@@ -73,4 +76,4 @@ async def combined_health():
     }
 
 # Ensure Vercel finds the handler
-handler = app
+handler = api_app

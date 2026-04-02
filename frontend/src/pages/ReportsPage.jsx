@@ -79,7 +79,7 @@ export default function ReportsPage() {
             <option value="">Select an analysis...</option>
             {analyses.map(a => (
               <option key={a.id} value={a.id}>
-                {new Date(a.created_at).toLocaleDateString()} — {a.total_files} files, Risk: {a.risk_level}
+                {new Date(a.created_at).toLocaleDateString()} — {a.repositories?.name || 'Unknown Repo'} ({a.total_files} files)
               </option>
             ))}
           </select>

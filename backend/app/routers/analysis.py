@@ -10,9 +10,9 @@ router = APIRouter(tags=["Analysis"])
 async def list_analyses(current_user: dict = Depends(get_current_user)):
     """List all analyses for the current user."""
     db = get_db()
+    # Join with repositories to get the repository name
     result = db.table("analysis_results").select(
-        "id, repository_id, status, total_files, total_lines, avg_complexity, "
-        "risk_level, risk_score, technical_debt_hours, summary, created_at, completed_at"
+        "*, repositories(name)"
     ).eq("user_id", current_user["id"]).order("created_at", desc=True).execute()
 
     return {"analyses": result.data}
