@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react'
-import { useLocation } from 'react-router-dom'
-import { reportsAPI, analysisAPI } from '../services/api'
+import axios from 'axios'
+import api, { reportsAPI, analysisAPI } from '../services/api'
 import toast from 'react-hot-toast'
 
 export default function ReportsPage() {
@@ -49,12 +48,12 @@ export default function ReportsPage() {
       const token = localStorage.getItem('access_token')
       
       // Professional Blob Download to ensure correct filename
-      const downloadResponse = await axios.get(`${api.defaults.baseURL}/reports/download/${reportId}`, {
+      const downloadResponse = await api.get(`/reports/download/${reportId}`, {
         params: { token },
         responseType: 'blob'
       })
       
-      const url = window.URL.createObjectURL(new Blob([downloadResponse.data]))
+      const url = window.URL.createObjectURL(new Blob([downloadResponse.data], { type: downloadResponse.headers['content-type'] }))
       const link = document.createElement('a')
       link.href = url
       link.setAttribute('download', filename)

@@ -29,29 +29,39 @@ async def generate_report(data: ReportGenerateRequest, current_user: dict = Depe
     insights = db.table("insights").select("*").eq("analysis_id", data.analysis_id).execute()
 
     # Generate report
-    report_service = ReportService()
-    report_bytes = report_service.generate_report(
-        analysis=analysis_data,
-        bugs=bugs.data or [],
-        insights=insights.data or [],
-        report_type=data.report_type.value,
-        format=data.format.value,
-    )
+    try:
+        report_service = ReportService()
+        report_bytes = report_service.generate_report(
+            analysis=analysis_data,
+            bugs=bugs.data or [],
+            insights=insights.data or [],
+            report_type=data.report_type.value,
+            format=data.format.value,
+        )
 
-    # Store report record
-    report_record = {
-        "analysis_id": data.analysis_id,
-        "user_id": current_user["id"],
-        "report_type": data.report_type.value,
-        "format": data.format.value,
-    }
-    result = db.table("reports").insert(report_record).execute()
+        # Store report record
+        report_record = {
+            "analysis_id": data.analysis_id,
+            "user_id": current_user["id"],
+            "report_type": data.report_type.value,
+            "format": data.format.value,
+        }
+        result = db.table("reports").insert(report_record).execute()
 
-    return {
-        "status": "success",
-        "report_id": result.data[0]["id"],
-        "message": "Report generated successfully"
-    }
+        return {
+            "status": "success",
+            "report_id": result.data[0]["id"],
+            "message": "Report generated successfully"
+        }
+    except Exception as e:
+        import traceback
+        error_detail = traceback.format_exc()
+        print(f"Report Generation Error: {str(e)}")
+        print(error_detail)
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Report generation failed: {type(e).__name__} - {str(e)}"
+        )
 
 
 @router.get("/download/{report_id}/{filename}")
