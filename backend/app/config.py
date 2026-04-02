@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     SUPABASE_SERVICE_ROLE_KEY: str = ""
 
     # Analysis
-    CLONE_DIR: str = os.path.join(os.path.dirname(os.path.dirname(__file__)), "cloned_repos")
+    CLONE_DIR: str = "/tmp/cloned_repos" if os.getenv("VERCEL") else os.path.join(os.path.dirname(os.path.dirname(__file__)), "cloned_repos")
     MAX_FILE_SIZE_KB: int = 500
     SUPPORTED_EXTENSIONS: list[str] = [".py", ".js", ".jsx", ".ts", ".tsx", ".java", ".c", ".cpp", ".h"]
 

@@ -28,9 +28,12 @@ class GitHubService:
         os.makedirs(self.clone_dir, exist_ok=True)
 
     def parse_repo_url(self, url: str) -> tuple[str, str]:
-        """Extract owner and repo name from GitHub URL."""
-        url = url.rstrip("/").replace(".git", "")
-        parts = url.split("/")
+        """Extract owner and repo name from GitHub URL, sanitizing trailing chars."""
+        # Strip common trailing characters that shouldn't be part of the repo name
+        url = url.rstrip("/-.").replace(".git", "")
+        parts = [p for p in url.split("/") if p]
+        if len(parts) < 2:
+            raise ValueError(f"Invalid GitHub URL format: {url}")
         owner = parts[-2]
         repo = parts[-1]
         return owner, repo
