@@ -95,6 +95,7 @@ export function AuthProvider({ children }) {
     return data
   }
 
+  async function signInWithGoogle() {
     const redirectUrl = window.location.hostname === 'localhost' 
       ? `${window.location.origin}/auth/callback` 
       : 'https://deviinsight.vercel.app/auth/callback';
