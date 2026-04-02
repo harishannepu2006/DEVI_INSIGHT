@@ -4,7 +4,8 @@ import shutil
 import logging
 import httpx
 import stat
-from git import Repo
+import zipfile
+import io
 from app.config import settings
 
 def remove_readonly(func, path, _):
@@ -16,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class GitHubService:
-    """Service for interacting with GitHub repositories."""
+    """Service for interacting with GitHub repositories via REST API."""
 
     def __init__(self):
         self.token = settings.GITHUB_TOKEN
@@ -54,23 +55,44 @@ class GitHubService:
             return response.json()
 
     def clone_repo(self, url: str, branch: str = "main") -> str:
-        """Clone a GitHub repository to local storage."""
+        """Download and extract a GitHub repository as a ZIP archive."""
         owner, repo_name = self.parse_repo_url(url)
         repo_path = os.path.join(self.clone_dir, f"{owner}_{repo_name}")
 
-        # Clean existing clone
+        # Clean existing directory
         if os.path.exists(repo_path):
             shutil.rmtree(repo_path, onerror=remove_readonly)
+        os.makedirs(repo_path, exist_ok=True)
 
         try:
-            # Add token to URL for private repos
-            auth_url = url.replace("https://", f"https://{self.token}@")
-            Repo.clone_from(auth_url, repo_path, branch=branch, depth=1)
-            logger.info(f"Cloned {url} to {repo_path}")
+            # Download ZIP archive
+            # URL format: https://api.github.com/repos/{owner}/{repo}/zipball/{branch}
+            zip_url = f"https://api.github.com/repos/{owner}/{repo_name}/zipball/{branch}"
+            
+            with httpx.Client() as client:
+                response = client.get(zip_url, headers=self.headers, follow_redirects=True)
+                if response.status_code != 200:
+                    raise ValueError(f"Failed to download repository ZIP (Status {response.status_code}).")
+                
+                # Extract ZIP from memory
+                with zipfile.ZipFile(io.BytesIO(response.content)) as z:
+                    # Get the top-level directory created by GitHub (usually owner-repo-hash)
+                    top_dir = z.namelist()[0].split('/')[0]
+                    z.extractall(repo_path)
+                    
+                    # Move everything from the top-level dir to repository-id root
+                    actual_path = os.path.join(repo_path, top_dir)
+                    for item in os.listdir(actual_path):
+                        s = os.path.join(actual_path, item)
+                        d = os.path.join(repo_path, item)
+                        shutil.move(s, d)
+                    os.rmdir(actual_path)
+                    
+            logger.info(f"Downloaded and extracted {url} to {repo_path}")
             return repo_path
         except Exception as e:
-            logger.error(f"Failed to clone {url}: {e}")
-            raise ValueError(f"Failed to clone repository: {e}")
+            logger.error(f"Failed to download repository: {e}")
+            raise ValueError(f"Failed to download repository: {e}")
 
     def scan_files(self, repo_path: str) -> list[dict]:
         """Scan repository for supported source files."""

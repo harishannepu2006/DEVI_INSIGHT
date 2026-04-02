@@ -5,7 +5,9 @@ supabase==2.3.4
 httpx==0.25.2
 pydantic==2.6.1
 pydantic-settings==2.1.0
-gitpython==3.1.41
+google-auth-httplib2>=0.1.0
+redis>=5.0.0
+celery>=5.3.0
 radon==6.0.1
 reportlab==4.1.0
 python-docx==1.1.0
