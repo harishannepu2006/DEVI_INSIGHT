@@ -19,17 +19,24 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 class PrefixMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
-        # Normalize paths by stripping leading /api if it exists
-        # This handles both Vercel's proxy behavior and direct local calls
         path = request.scope.get("path", "")
+        original_path = path
+        
+        # Normalize paths by stripping leading /api if it exists
         if path.startswith("/api"):
-            # Strip first 4 chars: "/api"
             new_path = path[4:] 
             if not new_path:
                 new_path = "/"
             request.scope["path"] = new_path
+            path = new_path
             
-        return await call_next(request)
+        response = await call_next(request)
+        
+        # Add diagnostic headers to troubleshoot Vercel routing
+        response.headers["X-Debug-Original-Path"] = original_path
+        response.headers["X-Debug-Used-Path"] = path
+        
+        return response
 
 # Create FastAPI app
 app = FastAPI(
