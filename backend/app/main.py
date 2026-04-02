@@ -20,7 +20,6 @@ app = FastAPI(
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
-    root_path="/api" if os.getenv("VERCEL") else ""
 )
 
 # CORS middleware
@@ -28,6 +27,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         settings.FRONTEND_URL,
+        "https://deviinsight.vercel.app",
         "http://localhost:5173",
         "http://localhost:3000",
     ],
@@ -40,14 +40,22 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
 
-# Include routers
-app.include_router(auth.router)
-app.include_router(repositories.router)
-app.include_router(analysis.router)
-app.include_router(bugs.router)
-app.include_router(insights.router)
-app.include_router(reports.router)
-app.include_router(chat.router)
+# --- DUAL-ROUTE STRATEGY ---
+# We include all routers TWICE: once with /api and once without.
+# This makes the API 100% path-agnostic for Vercel serverless environments.
+
+# 1. Standard Routes (no prefix needed as they are already in the apps own namespace)
+for router in [auth.router, repositories.router, analysis.router, bugs.router, insights.router, reports.router, chat.router]:
+    # Include with its standard prefix (e.g., /repositories)
+    app.include_router(router)
+    
+    # Also include with an explicit /api prefix for Vercel compatibility
+    app.include_router(router, prefix="/api")
+
+@app.get("/api/health")
+@app.get("/health")
+async def combined_health():
+    return {"status": "ok", "message": "DevInsight API is active"}
 
 @app.get("/api/health/debug")
 async def health_debug():
