@@ -40,17 +40,27 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
 
-# --- DUAL-ROUTE STRATEGY ---
-# We include all routers TWICE: once with /api and once without.
-# This makes the API 100% path-agnostic for Vercel serverless environments.
+# --- CENTRALIZED ROUTING TABLE ---
+# We explicitly map each router to its final /api address.
+# This eliminates all ambiguity and ensures 100% Vercel compatibility.
 
-# 1. Standard Routes (no prefix needed as they are already in the apps own namespace)
-for router in [auth.router, repositories.router, analysis.router, bugs.router, insights.router, reports.router, chat.router]:
-    # Include with its standard prefix (e.g., /repositories)
-    app.include_router(router)
-    
-    # Also include with an explicit /api prefix for Vercel compatibility
-    app.include_router(router, prefix="/api")
+app.include_router(auth.router, prefix="/api/auth")
+app.include_router(repositories.router, prefix="/api/repositories")
+app.include_router(analysis.router, prefix="/api/analysis")
+app.include_router(bugs.router, prefix="/api/bugs")
+app.include_router(insights.router, prefix="/api/insights")
+app.include_router(reports.router, prefix="/api/reports")
+app.include_router(chat.router, prefix="/api/chat")
+
+# Fallback: Also include them WITHOUT /api if needed for legacy or local reasons
+# But /api takes precedence in the Vercel execution context
+app.include_router(auth.router, prefix="/auth")
+app.include_router(repositories.router, prefix="/repositories")
+app.include_router(analysis.router, prefix="/analysis")
+app.include_router(bugs.router, prefix="/bugs")
+app.include_router(insights.router, prefix="/insights")
+app.include_router(reports.router, prefix="/reports")
+app.include_router(chat.router, prefix="/chat")
 
 @app.get("/api/health")
 @app.get("/health")

@@ -6,7 +6,7 @@ from app.utils.supabase_client import get_db
 from app.services.report_service import ReportService
 from app.models.schemas import ReportGenerateRequest
 
-router = APIRouter(prefix="/reports", tags=["Reports"])
+router = APIRouter(tags=["Reports"])
 
 
 @router.post("/generate")

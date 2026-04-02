@@ -5,7 +5,7 @@ from app.utils.supabase_client import get_db
 from app.services.ai_engine import AIEngine
 from app.models.schemas import ChatMessageRequest
 
-router = APIRouter(prefix="/chat", tags=["Chat"])
+router = APIRouter(tags=["Chat"])
 
 
 @router.post("/bug/{bug_id}")

@@ -5,7 +5,7 @@ from app.config import settings
 from app.middleware.auth_middleware import get_current_user
 from app.utils.supabase_client import get_db
 
-router = APIRouter(prefix="/auth", tags=["Authentication"])
+router = APIRouter(tags=["Authentication"])
 
 
 @router.get("/login")
