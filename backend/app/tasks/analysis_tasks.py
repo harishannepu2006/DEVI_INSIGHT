@@ -1,7 +1,5 @@
-"""Analysis Celery tasks — async repository analysis pipeline."""
 import logging
 from datetime import datetime
-from app.tasks.celery_app import celery_app
 from app.services.github_service import GitHubService
 from app.services.analysis_service import AnalysisService
 from app.services.bug_detection import BugDetector
@@ -60,8 +58,7 @@ def calculate_perfect_health_score(analysis_result, bugs):
     return round(health_score, 1), risk_level
 
 
-@celery_app.task(bind=True, max_retries=3, default_retry_delay=60)
-def run_analysis(self, analysis_id: str, repo_url: str, branch: str = "main",
+def run_analysis(analysis_id: str, repo_url: str, branch: str = "main",
                  user_id: str = None, repository_id: str = None):
     """Run full analysis pipeline on a repository."""
     db = get_db()
@@ -171,11 +168,10 @@ def run_analysis(self, analysis_id: str, repo_url: str, branch: str = "main",
             "error_message": str(e),
             "completed_at": datetime.utcnow().isoformat(),
         }).eq("id", analysis_id).execute()
+        # Retry logic removed for serverless compatibility
+        raise e
 
-        raise self.retry(exc=e)
 
-
-@celery_app.task
 def run_snippet_analysis(analysis_id: str, code: str, language: str, filename: str,
                          user_id: str = None, repository_id: str = None):
     """Run analysis on a code snippet."""

@@ -1,5 +1,4 @@
-"""Repository router — submit, list, and manage repositories."""
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
 from app.middleware.auth_middleware import get_current_user
 from app.utils.supabase_client import get_db
 from app.services.github_service import GitHubService
@@ -10,7 +9,7 @@ router = APIRouter(prefix="/api/repositories", tags=["Repositories"])
 
 
 @router.post("/submit")
-async def submit_repository(data: RepoSubmitRequest, current_user: dict = Depends(get_current_user)):
+async def submit_repository(data: RepoSubmitRequest, background_tasks: BackgroundTasks, current_user: dict = Depends(get_current_user)):
     """Submit a GitHub repository for analysis."""
     db = get_db()
     github_service = GitHubService()
@@ -41,8 +40,9 @@ async def submit_repository(data: RepoSubmitRequest, current_user: dict = Depend
         analysis_result = db.table("analysis_results").insert(analysis_record).execute()
         analysis_id = analysis_result.data[0]["id"]
 
-        # Trigger async analysis
-        run_analysis.delay(
+        # Trigger async analysis using BackgroundTasks (serverless friendly)
+        background_tasks.add_task(
+            run_analysis,
             analysis_id=analysis_id,
             repo_url=data.url,
             branch=data.branch or repo_info.get("default_branch", "main"),
@@ -64,7 +64,7 @@ async def submit_repository(data: RepoSubmitRequest, current_user: dict = Depend
 
 
 @router.post("/snippet")
-async def submit_snippet(data: CodeSnippetRequest, current_user: dict = Depends(get_current_user)):
+async def submit_snippet(data: CodeSnippetRequest, background_tasks: BackgroundTasks, current_user: dict = Depends(get_current_user)):
     """Submit a code snippet for analysis."""
     db = get_db()
 
@@ -88,8 +88,9 @@ async def submit_snippet(data: CodeSnippetRequest, current_user: dict = Depends(
         analysis_result = db.table("analysis_results").insert(analysis_record).execute()
         analysis_id = analysis_result.data[0]["id"]
 
-        # Trigger snippet analysis
-        run_snippet_analysis.delay(
+        # Trigger snippet analysis using BackgroundTasks
+        background_tasks.add_task(
+            run_snippet_analysis,
             analysis_id=analysis_id,
             code=data.code,
             language=data.language,
