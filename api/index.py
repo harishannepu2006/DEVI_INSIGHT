@@ -10,23 +10,22 @@ backend_path = os.path.join(project_root, "backend")
 if backend_path not in sys.path:
     sys.path.insert(0, backend_path)
 
-# Mount the main app under /api to match Vercel rewrites and frontend calls
-# This makes the routes like /api/analysis/ match the production app.
-api_app = FastAPI()
+# Initialize the diagnostic app
+app = FastAPI()
+import_error = None
 
 try:
     # Try to load the real production app
     from app.main import app as _app
-    api_app.mount("/api", _app)
-    # Also mount at root as fallback for some Vercel rewrite behaviors
-    api_app.mount("/", _app)
+    # Use the production app directly as our handler
+    app = _app
 except Exception as e:
     import_error = traceback.format_exc()
     print(f"CRITICAL: Backend import failed: {e}")
 
-@api_app.get("/api/health-check")
-@api_app.get("/health-check")
-async def combined_health():
+@app.get("/api/health-check")
+@app.get("/health-check")
+async def combined_health_v2():
     """Emergency diagnostic and standard health endpoint."""
     from app.config import settings
     from app.utils.supabase_client import get_db
@@ -76,4 +75,4 @@ async def combined_health():
     }
 
 # Ensure Vercel finds the handler
-handler = api_app
+handler = app

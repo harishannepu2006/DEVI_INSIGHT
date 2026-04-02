@@ -43,17 +43,18 @@ from fastapi.responses import FileResponse
 import os
 
 # --- CENTRALIZED ROUTING TABLE ---
-# We include every module here. The /api prefix is automatically handled
-# by the Vercel gateway or an explicit mount in the entry point.
+# We explicitly map each router to its final /api address.
+# This eliminates all ambiguity and ensures 100% Vercel compatibility.
 
-app.include_router(auth.router, prefix="/auth")
-app.include_router(repositories.router, prefix="/repositories")
-app.include_router(analysis.router, prefix="/analysis")
-app.include_router(bugs.router, prefix="/bugs")
-app.include_router(insights.router, prefix="/insights")
-app.include_router(reports.router, prefix="/reports")
-app.include_router(chat.router, prefix="/chat")
+app.include_router(auth.router, prefix="/api/auth")
+app.include_router(repositories.router, prefix="/api/repositories")
+app.include_router(analysis.router, prefix="/api/analysis")
+app.include_router(bugs.router, prefix="/api/bugs")
+app.include_router(insights.router, prefix="/api/insights")
+app.include_router(reports.router, prefix="/api/reports")
+app.include_router(chat.router, prefix="/api/chat")
 
+@app.get("/api/health")
 @app.get("/health")
 async def health_check():
     return {"status": "ok", "message": "DevInsight API is active"}
