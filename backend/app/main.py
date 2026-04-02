@@ -50,6 +50,21 @@ app.include_router(insights.router)
 app.include_router(reports.router)
 app.include_router(chat.router)
 
+@app.get("/api/health/debug")
+async def health_debug():
+    """Diagnostic endpoint to check environment variables (masked)."""
+    from app.config import settings
+    return {
+        "status": "active",
+        "env": settings.APP_ENV,
+        "checks": {
+            "SUPABASE_URL": bool(settings.SUPABASE_URL),
+            "SUPABASE_SERVICE_ROLE_KEY": bool(settings.SUPABASE_SERVICE_ROLE_KEY),
+            "GITHUB_TOKEN": bool(settings.GITHUB_TOKEN),
+            "SECRET_KEY": settings.SECRET_KEY != "devinsight-secret-key-change-in-production"
+        }
+    }
+
 # --- Static File Hosting for Frontend ---
 # This serves the React build directory (static files)
 # Ensure the folder exists to avoid startup errors

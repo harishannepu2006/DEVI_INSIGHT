@@ -60,7 +60,13 @@ async def submit_repository(data: RepoSubmitRequest, background_tasks: Backgroun
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to submit repository: {str(e)}")
+        import traceback
+        print(f"Submission Error: {str(e)}")
+        print(traceback.format_exc())
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Failed to submit repository: {type(e).__name__} - {str(e)}"
+        )
 
 
 @router.post("/snippet")
