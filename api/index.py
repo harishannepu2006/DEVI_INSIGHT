@@ -1,23 +1,11 @@
 import sys
 import os
-from fastapi import FastAPI
 
-# Hardened Path Resolution
-base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-backend_dir = os.path.join(base_dir, "backend")
+# Add backend to path so we can import 'app'
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "backend"))
 
-if backend_dir not in sys.path:
-    sys.path.append(backend_dir)
+# Vercel needs this top-level assignment
+from app.main import app as handler
 
-try:
-    # Try to import the real app
-    from app.main import app
-except ImportError as e:
-    # Minimal fallback app for debugging
-    app = FastAPI()
-    @app.get("/api/health-check")
-    async def health_check():
-        return {"status": "import_error", "detail": str(e), "path": sys.path}
-
-# Vercel expects a top-level object named 'app' or 'handler'
-# We'll use 'app' as it's the standard for FastAPI
+# Also keep 'app' just in case
+app = handler
