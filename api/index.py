@@ -1,53 +1,43 @@
+from fastapi import FastAPI
 import sys
 import os
-from fastapi import FastAPI
 
-# Hardened Path Resolution
-base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-backend_dir = os.path.join(base_dir, "backend")
-
-if backend_dir not in sys.path:
-    sys.path.append(backend_dir)
-
-# Initialize app as a minimal fallback first to prevent "Could not find app" errors
 app = FastAPI()
-import_error = None
-
-try:
-    # Vercel needs this top-level assignment
-    # We use both 'app' and 'handler' to be safe across different builder versions
-    from app.main import app as _app
-    app = _app
-    handler = _app
-except Exception as e:
-    import_error = traceback.format_exc()
 
 @app.get("/api/health-check")
-async def health_check():
-    import os
-    # Scan the current directory and parent directory to find the backend code
+async def isolation_health():
+    """Ultimate isolation diagnostic."""
     try:
-        root_files = os.listdir(os.path.join(os.path.dirname(__file__), ".."))
-        api_files = os.listdir(os.path.dirname(__file__))
-    except:
-        root_files = ["Could not access parent"]
-        api_files = ["Could not access current"]
-
-    if import_error:
+        # Reflect the directories to see where we are
+        # Vercel's root directory is usually the parent of /api
+        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        
+        # Check for key directories
+        has_backend = os.path.exists(os.path.join(project_root, "backend"))
+        has_frontend = os.path.exists(os.path.join(project_root, "frontend"))
+        
+        # List what we can see for deep manual inspection
+        root_ls = os.listdir(project_root) if os.path.exists(project_root) else ["PARENT NOT ACCESSIBLE"]
+        api_ls = os.listdir(os.path.dirname(__file__)) if os.path.exists(os.path.dirname(__file__)) else ["CURRENT NOT ACCESSIBLE"]
+        
         return {
-            "status": "fatal_crash_during_import", 
-            "detail": "The backend failed to load during startup.",
-            "traceback": import_error,
-            "path": sys.path,
+            "status": "ISOLATED_READY",
+            "message": "Python runtime is working. The entry point is isolated.",
             "cwd": os.getcwd(),
-            "root_contents": root_files,
-            "api_contents": api_files
+            "sys_path": sys.path,
+            "project_root": project_root,
+            "visibility": {
+                "backend": has_backend,
+                "frontend": has_frontend,
+                "root_ls": root_ls,
+                "api_ls": api_ls
+            }
         }
-    return {
-        "status": "ok",
-        "root_contents": root_files,
-        "api_contents": api_files
-    }
+    except Exception as e:
+        return {
+            "status": "ISOLATION_FAILURE",
+            "error": str(e)
+        }
 
-# Ensure Vercel finds the 'app' even if the import fails
+# Ensure Vercel finds the handler
 handler = app
