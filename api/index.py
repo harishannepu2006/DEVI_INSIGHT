@@ -1,11 +1,30 @@
 import sys
 import os
+from fastapi import FastAPI
 
-# Add the backend directory to the sys.path so we can import the app
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "backend"))
+# Hardened Path Resolution
+# This ensures that even if Vercel starts in a different directory, we find the backend
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+backend_dir = os.path.join(base_dir, "backend")
 
-from app.main import app
+if backend_dir not in sys.path:
+    sys.path.append(backend_dir)
 
-# This is the object Vercel will use to run the serverless function
-# Export app as handler if needed, but Vercel handles ASGI/WSGI apps directly
+try:
+    from app.main import app
+except ImportError as e:
+    # Fallback app for debugging 500 errors in Vercel
+    app = FastAPI()
+    @app.get("/api/health-check")
+    async def health_check():
+        return {
+            "status": "error", 
+            "message": f"Could not import app.main. Error: {str(e)}",
+            "sys_path": sys.path,
+            "cwd": os.getcwd(),
+            "base_dir": base_dir,
+            "backend_dir": backend_dir
+        }
+
+# This is the object Vercel consumes
 handler = app
