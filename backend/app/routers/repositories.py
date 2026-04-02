@@ -61,11 +61,16 @@ async def submit_repository(data: RepoSubmitRequest, background_tasks: Backgroun
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
+        error_detail = traceback.format_exc()
         print(f"Submission Error: {str(e)}")
-        print(traceback.format_exc())
+        print(error_detail)
         raise HTTPException(
             status_code=500, 
-            detail=f"Failed to submit repository: {type(e).__name__} - {str(e)}"
+            detail={
+                "message": f"Failed to submit repository: {type(e).__name__} - {str(e)}",
+                "error_type": type(e).__name__,
+                "debug_info": "Check server logs for full traceback"
+            }
         )
 
 

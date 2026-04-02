@@ -5,7 +5,10 @@ import traceback
 
 # Add backend to path - verified folder visibility is [project_root]/backend
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-sys.path.append(os.path.join(project_root, "backend"))
+backend_path = os.path.join(project_root, "backend")
+
+if backend_path not in sys.path:
+    sys.path.insert(0, backend_path)
 
 # Initialize a fallback app in case the import fails
 app = FastAPI()
@@ -27,12 +30,14 @@ async def combined_health():
             "status": "CRASHED",
             "detail": "The backend failed to load. Check traceback below.",
             "traceback": import_error,
-            "sys_path": sys.path
+            "sys_path": sys.path,
+            "project_root": project_root
         }
     return {
         "status": "READY",
         "message": "DevInsight API is active and reconnected",
-        "project_root": project_root
+        "project_root": project_root,
+        "backend_path": backend_path
     }
 
 # Ensure Vercel finds the handler
