@@ -24,15 +24,30 @@ except Exception as e:
 
 @app.get("/api/health-check")
 async def health_check():
+    import os
+    # Scan the current directory and parent directory to find the backend code
+    try:
+        root_files = os.listdir(os.path.join(os.path.dirname(__file__), ".."))
+        api_files = os.listdir(os.path.dirname(__file__))
+    except:
+        root_files = ["Could not access parent"]
+        api_files = ["Could not access current"]
+
     if import_error:
         return {
             "status": "fatal_crash_during_import", 
             "detail": "The backend failed to load during startup.",
             "traceback": import_error,
             "path": sys.path,
-            "cwd": os.getcwd()
+            "cwd": os.getcwd(),
+            "root_contents": root_files,
+            "api_contents": api_files
         }
-    return {"status": "ok"}
+    return {
+        "status": "ok",
+        "root_contents": root_files,
+        "api_contents": api_files
+    }
 
 # Ensure Vercel finds the 'app' even if the import fails
 handler = app
