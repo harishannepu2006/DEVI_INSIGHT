@@ -19,16 +19,24 @@ export default function ReportsPage() {
 
   async function loadData() {
     try {
-      const [analysesRes, reportsRes] = await Promise.all([
-        analysisAPI.list(),
-        reportsAPI.list()
-      ])
-      setAnalyses((analysesRes.data.analyses || []).filter(a => a.status === 'completed'))
+      const analysesRes = await analysisAPI.list().catch(err => {
+        console.error('Analyses load failed:', err)
+        return { data: { analyses: [] } }
+      })
+      
+      const reportsRes = await reportsAPI.list().catch(err => {
+        console.error('Reports load failed:', err)
+        return { data: { reports: [] } }
+      })
+
+      const analysisList = analysesRes.data.analyses || []
+      setAnalyses(analysisList.filter(a => a.status === 'completed'))
       setReports(reportsRes.data.reports || [])
     } catch (err) {
-      console.error(err)
+      console.error('General load error:', err)
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   async function handleGenerate() {
