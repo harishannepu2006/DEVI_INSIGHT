@@ -694,8 +694,14 @@ a:hover {
 
 /* Fix for invisible text in dark mode dropdowns */
 .form-select option {
-  background-color: var(--bg-secondary);
-  color: var(--text-primary);
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  padding: 12px;
+}
+
+/* Force standard contrast for unselected options in some browsers */
+.form-select:focus option {
+  color: var(--text-primary) !important;
 }
 
 /* ==========================================

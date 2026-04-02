@@ -83,7 +83,7 @@ export const reportsAPI = {
       format
     }),
   downloadUrl: (reportId, filename) => `${API_BASE}/reports/download/${reportId}/${filename}`,
-  list: () => api.get('/reports/'),
+  list: () => api.get('/reports'),
 }
 
 // Chat
